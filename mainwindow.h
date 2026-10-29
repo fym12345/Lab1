@@ -26,6 +26,7 @@ private slots:
 
     void btnNumClicked();
     void btnbinaryOperatorClicked();
+    void btnUnaryOperatorClicked();
 
     void on_btnPeriod_clicked();
 
