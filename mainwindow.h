@@ -40,5 +40,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+     bool isResultShown = false;
+     bool isCalculated = false;
 };
 #endif // MAINWINDOW_H

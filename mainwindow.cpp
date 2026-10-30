@@ -57,8 +57,13 @@ QString MainWindow::calculation(bool *ok)
      }else if(op == "*"){
        result = operand1*operand2;
      }else if(op == "/"){
+         if(operand2 == 0) {
+                 if(ok) *ok = false; // 利用传入的指针传递错误状态
+                 return "Error";     // 显示错误提示
+             }
        result = operand1/operand2;
      }
+
 
      ui->statusbar->showMessage(QString("calculation is in progress: operands is %1,opcode is %2").arg(operands.size()).arg(opcodes.size()));
     }else
@@ -69,6 +74,11 @@ QString MainWindow::calculation(bool *ok)
 
 void MainWindow::btnNumClicked()
 {
+    if (isCalculated) {
+           operand = "";
+           isCalculated = false;
+       }
+
     QString digit = qobject_cast<QPushButton *>(sender())->text();
 
     if(digit == "0" && operand == "0")
@@ -101,35 +111,77 @@ ui->display->setText(operand);
 
 void MainWindow::on_btnClearAll_clicked()
 {
-
+    operand.clear();
+        operands.clear();
+        opcodes.clear();
+        isCalculated = false;
+        ui->display->setText("0");
 }
 
 
 void MainWindow::on_btnClear_clicked()
 {
     operand.clear();
-    ui->display->setText(operand);
+    isCalculated = false; // 清除当前输入时，也取消已计算状态
+    ui->display->setText("0");
 }
 
 void MainWindow::btnbinaryOperatorClicked()
 {
-   ui->statusbar->showMessage("last operand " + operand);
-   QString opcode = qobject_cast<QPushButton *>(sender())->text();
-   qDebug() << opcode;
+    if (operand == "Error") {
+        on_btnClearAll_clicked();
+        return;
+    }
 
+    QString opcode = qobject_cast<QPushButton *>(sender())->text();
 
-   if(operand != ""){
-       operands.push_back(operand);
-       operand = "";
+    if (isCalculated) {
+        operands.clear();
+        opcodes.clear();
+        isCalculated = false;
+    }
 
-       opcodes.push_back(opcode);
+    if(operand != ""){
+        operands.push_back(operand);
+        operand = "";
+    }
 
-   QString result=calculation();
+    // 如果队列里已经有2个数（说明是按了连算，比如 2 + 3 +）
+    if (operands.size() == 2) {
+        QString result = calculation(); // 算出 5
+        ui->display->setText(result);
 
-   ui->display->setText(result);
+        // 【关键修复】把算出的 5 重新塞回队列作为下一次运算的第一个数
+        operands.push_back(result);
+    }
 
-   }
+    // 把刚按下的操作符（+）塞进操作符队列
+    opcodes.push_back(opcode);
+}
 
+void MainWindow::on_btnEqual_clicked()
+{
+    if (operand == "Error") {
+        on_btnClearAll_clicked();
+        return;
+    }
+
+    // 把最后输入的数字（4）放进队列
+    if(operand != ""){
+        operands.push_back(operand);
+        operand = "";
+    }
+
+    // 此时队列里有：操作数[5, 4]，操作符[+]
+    QString result = calculation();
+    ui->display->setText(result);
+
+    operand = result;
+    isCalculated = true;
+
+    // 算完后清空队列，迎接下一次全新计算
+    operands.clear();
+    opcodes.clear();
 }
 
 void MainWindow::btnUnaryOperatorClicked()
@@ -149,18 +201,10 @@ void MainWindow::btnUnaryOperatorClicked()
         else if(op == "√")
             result = sqrt(result);
 
-        ui->display->setText(QString::number(result));
+        operand = QString::number(result); // 算完存回 operand
+                ui->display->setText(operand);
+                isCalculated = true; // 单目运算算完，同样标记为已计算状态
     }
 }
 
-void MainWindow::on_btnEqual_clicked()
-{
-    if(operand != ""){
-        operands.push_back(operand);
-        operand = "";
-    }
-    QString result=calculation();
-    ui->display->setText(result);
-
-}
 
