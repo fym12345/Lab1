@@ -2,22 +2,39 @@
 #include "ui_mainwindow.h"
 #include <QDebug>
 #include <math.h>
+#include <QKeyEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    connect(ui->btnNum0,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum1,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum2,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum3,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum4,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum5,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum6,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum7,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum8,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
-    connect(ui->btnNum9,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+
+    digitBTNs = {{Qt::Key_0,ui->btnNum0},
+                 {Qt::Key_1,ui->btnNum1},
+                 {Qt::Key_2,ui->btnNum2},
+                 {Qt::Key_3,ui->btnNum3},
+                 {Qt::Key_4,ui->btnNum4},
+                 {Qt::Key_5,ui->btnNum5},
+                 {Qt::Key_6,ui->btnNum6},
+                 {Qt::Key_7,ui->btnNum7},
+                 {Qt::Key_8,ui->btnNum8},
+                 {Qt::Key_9,ui->btnNum9},
+                 };
+
+    foreach(auto btn,digitBTNs)
+         connect(btn,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+
+//    connect(ui->btnNum0,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum1,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum2,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum3,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum4,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum5,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum6,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum7,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum8,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
+//    connect(ui->btnNum9,SIGNAL(clicked()),this,SLOT(btnNumClicked()));
 
     connect(ui->btnMultiple,SIGNAL(clicked()),this,SLOT(btnbinaryOperatorClicked()));
     connect(ui->btnPlus,SIGNAL(clicked()),this,SLOT(btnbinaryOperatorClicked()));
@@ -54,7 +71,7 @@ QString MainWindow::calculation(bool *ok)
        result = operand1+operand2;
      }else if(op == "-"){
        result = operand1-operand2;
-     }else if(op == "*"){
+     }else if(op == "×"){
        result = operand1*operand2;
      }else if(op == "/"){
          if(operand2 == 0) {
@@ -184,6 +201,83 @@ void MainWindow::on_btnEqual_clicked()
     opcodes.clear();
 }
 
+void MainWindow::on_btnsign_clicked()
+{
+    // 如果当前是 Error 状态，先清零
+       if (operand == "Error") {
+           on_btnClearAll_clicked();
+           return;
+       }
+
+       // 如果当前没有任何输入，默认把 0 变成 -0（或者不理它，这里选择变为 -0）
+       if (operand.isEmpty()) {
+           operand = "-0";
+       }
+       // 如果当前字符串是以 "-" 开头，说明是负数，去掉 "-" 变正数
+       else if (operand.startsWith("-")) {
+           operand.remove(0, 1);
+       }
+       // 如果当前是正数（且不为 0），在前面加上 "-"
+       else if (operand != "0") {
+           operand.prepend("-");
+       }
+
+       // 更新界面显示
+       ui->display->setText(operand);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    // 1. 处理数字键 0-9 (复用你之前的 QMap 逻辑)
+    if (digitBTNs.contains(event->key())) {
+        digitBTNs[event->key()]->animateClick(100);
+        return;
+    }
+
+    // 2. 处理四则运算和等号 (映射到对应的按钮，模拟点击动画)
+    switch (event->key()) {
+        case Qt::Key_Plus:
+            ui->btnPlus->animateClick(100);
+            break;
+        case Qt::Key_Minus:
+            ui->btnMinus->animateClick(100);
+            break;
+        case Qt::Key_Asterisk: // 键盘上的 * 号
+        case Qt::Key_X:        // 防止有些键盘按 x 也是乘
+            ui->btnMultiple->animateClick(100);
+            break;
+        case Qt::Key_Slash:    // 键盘上的 / 号
+            ui->btnDivide->animateClick(100);
+            break;
+        case Qt::Key_Equal:    // 键盘上的 = 号
+        case Qt::Key_Enter:    // 键盘上的回车键（小键盘的回车）
+        case Qt::Key_Return:   // 键盘上的回车键（主键盘的回车）
+            ui->btnEqual->animateClick(100);
+            break;
+
+        // 3. 处理功能键
+        case Qt::Key_Period:   // 小数点
+            ui->btnPeriod->animateClick(100);
+            break;
+        case Qt::Key_Backspace:// 退格键
+            ui->btnDel->animateClick(100);
+            break;
+        case Qt::Key_Escape:   // ESC键 映射为 C (全部清除)
+            ui->btnClear->animateClick(100);
+            break;
+        case Qt::Key_Delete:   // Delete键 映射为 CE (清除当前输入)
+            ui->btnClearAll->animateClick(100);
+            break;
+        case Qt::Key_F9: // 按键盘 F9 切换正负号
+               ui->btnsign->animateClick(100);
+               break;
+
+        default:
+            // 如果没有匹配的按键，交给父类处理（保持良好的 Qt 习惯）
+            QMainWindow::keyPressEvent(event);
+            break;
+    }
+}
 void MainWindow::btnUnaryOperatorClicked()
 {
     if(operand != ""){
