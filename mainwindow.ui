@@ -13,6 +13,68 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">/* 1. 全局窗口背景设置 */
+QWidget {
+    background-color: #f3f3f3; /* 浅灰白色背景，参考Windows风格 */
+}
+
+/* 2. 顶部显示框 (QLineEdit) 设置 */
+QLineEdit {
+    background-color: #ffffff; /* 纯白背景 */
+    border: 1px solid #dcdcdc; /* 浅灰色细边框 */
+    border-radius: 4px;        /* 轻微的圆角 */
+    color: #000000;            /* 黑色字体 */
+    font-size: 36px;           /* 字体放大 */
+    padding-right: 10px;       /* 文字靠右时留出一点边距 */
+}
+
+/* 3. 所有普通按钮的通用设置 */
+QPushButton {
+    background-color: #ffffff; /* 白色背景 */
+    border: 1px solid #e6e6e6; /* 极浅的边框 */
+    border-radius: 4px;        /* 圆角 */
+    color: #333333;            /* 深灰色字体 */
+    font-size: 24px;           /* 字体大小（根据你的按钮大小可微调） */
+    font-family: &quot;Segoe UI&quot;, &quot;Microsoft YaHei&quot;; /* 使用现代无衬线字体 */
+  
+}
+
+/* 4. 鼠标悬停时的效果 (Hover) */
+QPushButton:hover {
+    background-color: #f0f0f0; /* 鼠标放上去变成很浅的灰色 */
+}
+
+/* 5. 鼠标按下时的效果 (Pressed) */
+QPushButton:pressed {
+    background-color: #e0e0e0; /* 按下时颜色再深一点 */
+}
+
+/* ========================================== */
+/* 以下是针对特殊按键的单独美化（请确保你的控件名字和下面一致） */
+/* ========================================== */
+
+/* 6. 等号键 (btnEqual) - 参考图3的深青色 */
+QPushButton#btnEqual {
+    background-color: #006666; /* 深青色背景 */
+    color: #ffffff;            /* 白色字体 */
+    border: none;              /* 无边框 */
+}
+QPushButton#btnEqual:hover {
+    background-color: #005555; /* 悬停变深 */
+}
+QPushButton#btnEqual:pressed {
+    background-color: #004444; /* 按下更深 */
+}
+
+/* 7. 顶部功能键 (CE, C, 退格) - 稍微区分一下颜色 */
+QPushButton#btnClear, 
+QPushButton#btnClearAll, 
+QPushButton#btnDel {
+    background-color: #f9f9f9; /* 带一点点灰的白 */
+    color: #555555;
+}</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
